@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Blog Details{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-900 px-8 py-8">
+            <p class="text-blue-200 text-sm uppercase tracking-widest mb-2">
+                Blog Details
+            </p>
+
+            <h1 class="text-4xl font-bold text-white mb-3">
+                {{ blog.title }}
+            </h1>
+
+            <p class="text-slate-200">
+                Written by <span class="font-semibold">{{ blog.username }}</span>
+            </p>
+        </div>
+
+        <div class="p-8">
+
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">
+                    Content
+                </h2>
+
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                    <p class="text-slate-700 leading-relaxed whitespace-pre-line">
+                        {{ blog.content }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">
+                    Categories
+                </h2>
+
+                <div class="flex flex-wrap gap-3">
+                    {% for category in blog.categories %}
+                        <span class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-medium text-sm">
+                            {{ category }}
+                        </span>
+                    {% empty %}
+                        <p class="text-slate-500">
+                            No categories assigned.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if request.session.user_id == blog.user_id %}
+                <div class="flex gap-4 pt-4 border-t border-slate-200">
+
+                    <a href="{% url 'edit_blog' blog.id %}"
+                       class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl font-semibold transition">
+                        Edit Blog
+                    </a>
+
+                    <a href="{% url 'delete_blog' blog.id %}"
+                       onclick="return confirm('Are you sure you want to delete this blog?')"
+                       class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-semibold transition">
+                        Delete Blog
+                    </a>
+
+                    <a href="{% url 'blog_list' %}"
+                       class="px-6 py-3 rounded-2xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 transition">
+                        Back
+                    </a>
+
+                </div>
+            {% else %}
+                <div class="pt-4 border-t border-slate-200">
+                    <a href="{% url 'blog_list' %}"
+                       class="px-6 py-3 rounded-2xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 transition">
+                        Back to Blogs
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
