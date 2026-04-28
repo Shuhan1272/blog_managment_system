@@ -10,8 +10,8 @@ def blog_list(request):
             SELECT b.id, b.title, b.content,u.username, u.id
             FROM blogs b
             JOIN users u ON b.user_id = u.id
-            ORDER BY b.id DESC
-        """)
+            ORDER BY b.id DESC 
+        """) #order by id desc to show the latest blogs first
         rows = cursor.fetchall()
 
     blogs = []
@@ -130,7 +130,8 @@ def edit_blog(request, blog_id):
         return redirect('login')
 
     user_id = request.session.get('user_id')
-
+    
+    #getting the blog 
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT id, title, content, user_id
@@ -140,17 +141,52 @@ def edit_blog(request, blog_id):
 
         row = cursor.fetchone()
 
-        if not row:
-            messages.error(request, "Blog not found.")
-            return redirect('blog_list')
+    blog = {
+        'id': row[0],
+        'title': row[1],
+        'content': row[2],
+    }
 
-        if row[3] != user_id:
-            messages.error(request, "You can only edit your own blog.")
-            return redirect('blog_list')
+    #getting the categories associated with the blog
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT c.id,c.name
+            FROM categories c
+            JOIN blog_categories bc ON c.id = bc.category_id
+            WHERE bc.blog_id = %s
+        """, [blog_id])
+
+        category_rows = cursor.fetchall()
+      
+
+    blog_categories = []
+    for row in category_rows:
+        blog_categories.append({
+            'id': row[0],
+            'name': row[1]
+        })
+
+    #all categories to display in the form
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id, name FROM categories")
+
+        category_rows = cursor.fetchall()
+      
+
+    categories = []
+    for row in category_rows:
+        categories.append({
+            'id': row[0],
+            'name': row[1]
+                    })
+
+    
 
     if request.method == 'POST':
         title = request.POST.get('title')
         content = request.POST.get('content')
+        selected_categories = request.POST.getlist('categories')
 
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -159,17 +195,29 @@ def edit_blog(request, blog_id):
                 WHERE id = %s
             """, [title, content, blog_id])
 
+        # Update the blog categories
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                DELETE FROM blog_categories
+                WHERE blog_id = %s
+            """, [blog_id])
+
+            for category_id in selected_categories:
+                cursor.execute("""
+                    INSERT INTO blog_categories (blog_id, category_id)
+                    VALUES (%s, %s)
+                """, [blog_id, category_id])
+
         messages.success(request, "Blog updated successfully.")
         return redirect('blog_details', blog_id=blog_id)
 
-    blog = {
-        'id': row[0],
-        'title': row[1],
-        'content': row[2],
-    }
+    
+
 
     return render(request, 'blog/edit_blog.html', {
-        'blog': blog
+        'blog': blog,
+        'categories': categories,
+        'blog_categories': blog_categories,
     })
 
 
