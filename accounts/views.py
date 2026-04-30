@@ -6,14 +6,10 @@ from django.contrib.auth.hashers import make_password, check_password
 
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '').strip()
-        confirm_password = request.POST.get('confirm_password', '').strip()
-
-        if not username or not email or not password or not confirm_password:
-            messages.error(request, 'All fields are required.')
-            return render(request, 'account/register.html')
+        username = request.POST.get('username').strip()
+        email = request.POST.get('email').strip()
+        password = request.POST.get('password').strip()
+        confirm_password = request.POST.get('confirm_password').strip()
 
         if password != confirm_password:
             messages.error(request, 'Passwords do not match.')
@@ -40,17 +36,13 @@ def register_view(request):
         messages.success(request, 'Registration successful. Please login.')
         return redirect('login')
 
-    return render(request, 'account/register.html')
+    return render(request, 'account/register.html') #return html template and shows in browser
 
 
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '').strip()
-
-        if not email or not password:
-            messages.error(request, 'Email and password are required.')
-            return render(request, 'account/login.html')
+        email = request.POST.get('email').strip()
+        password = request.POST.get('password').strip()
 
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -73,13 +65,13 @@ def login_view(request):
             messages.error(request, 'Invalid email or password.')
             return render(request, 'account/login.html')
         
-        #session is used to remember information about a user between requests
+        #session is used to remember information about a user between requests #DJANGO SESSION FRAMEWORK
         request.session['user_id'] = user_id
         request.session['username'] = username
         request.session['user_email'] = user_email
 
         messages.success(request, 'Login successful.')
-        return redirect('blog_list')
+        return redirect('blog_list') #move to another url after successful login
 
     return render(request, 'account/login.html')
 
